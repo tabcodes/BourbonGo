@@ -1,12 +1,18 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"BourbonGo/models"
 )
 
 func main() {
+
+	err := models.ConnectDatabase()
+	checkErr(err)
 
 	r := gin.Default()
 
@@ -25,8 +31,21 @@ func main() {
 	r.Run()
 }
 
+func checkErr(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func getBourbons(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "getBourbons Called"})
+	bourbons, err := models.GetBourbons(10)
+	checkErr(err)
+
+	if bourbons == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No bourbons found!"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"bourbons": bourbons})
+	}
 }
 
 func getBourbonById(c *gin.Context) {
