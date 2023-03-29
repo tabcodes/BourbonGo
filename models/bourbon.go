@@ -31,7 +31,7 @@ func ConnectDatabase() error {
 
 func GetBourbons(count int) ([]Bourbon, error) {
 
-	rows, err := DB.Query("SELECT * from bourbons LIMIT " + strconv.Itoa(count))
+	rows, err := DB.Query("SELECT id, name, size, price, abv, description from bourbons LIMIT " + strconv.Itoa(count))
 
 	if err != nil {
 		return nil, err
@@ -43,7 +43,14 @@ func GetBourbons(count int) ([]Bourbon, error) {
 
 	for rows.Next() {
 		singleBourbon := Bourbon{}
-		err = rows.Scan(&singleBourbon.Id, &singleBourbon.Name, &singleBourbon.Size, &singleBourbon.Price, &singleBourbon.Abv, &singleBourbon.Description)
+		err = rows.Scan(
+			&singleBourbon.Id,
+			&singleBourbon.Name,
+			&singleBourbon.Size,
+			&singleBourbon.Price,
+			&singleBourbon.Abv,
+			&singleBourbon.Description,
+		)
 
 		if err != nil {
 			return nil, err
@@ -59,4 +66,28 @@ func GetBourbons(count int) ([]Bourbon, error) {
 	}
 
 	return bourbons, err
+}
+
+func GetBourbonById(id string) (Bourbon, error) {
+	qs := `SELECT id, name, price, size, abv, description
+			FROM bourbons
+			WHERE id = ?`
+
+	stmt, err := DB.Prepare(qs)
+
+	if err != nil {
+		return Bourbon{}, err
+	}
+
+	b := Bourbon{}
+
+	stmtErr := stmt.QueryRow(id).Scan(&b.Id, &b.Name, &b.Price, &b.Size, &b.Abv, &b.Description)
+	if stmtErr != nil {
+		if stmtErr == sql.ErrNoRows {
+			return Bourbon{}, nil
+		}
+		return Bourbon{}, stmtErr
+	}
+
+	return b, nil
 }

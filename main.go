@@ -44,13 +44,21 @@ func getBourbons(c *gin.Context) {
 	if bourbons == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No bourbons found!"})
 	} else {
-		c.JSON(http.StatusOK, gin.H{"bourbons": bourbons})
+		c.JSON(http.StatusOK, gin.H{"data": bourbons})
 	}
 }
 
 func getBourbonById(c *gin.Context) {
 	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{"message": "getBourbonById " + id + " Called"})
+
+	bourbon, err := models.GetBourbonById(id)
+	checkErr(err)
+	if bourbon == (models.Bourbon{}) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"data": bourbon})
+	}
+
 }
 
 func addBourbon(c *gin.Context) {
