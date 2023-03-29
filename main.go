@@ -13,7 +13,7 @@ func main() {
 	v1 := r.Group("/v1")
 	{
 
-		v1.GET("bourbon", getBourbon)
+		v1.GET("bourbons", getBourbons)
 		v1.GET("bourbon/:id", getBourbonById)
 
 		v1.POST("bourbon", addBourbon)
@@ -25,7 +25,7 @@ func main() {
 	r.Run()
 }
 
-func getBourbon(c *gin.Context) {
+func getBourbons(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "getBourbons Called"})
 }
 
