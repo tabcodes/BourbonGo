@@ -91,3 +91,31 @@ func GetBourbonById(id string) (Bourbon, error) {
 
 	return b, nil
 }
+
+func CreateBourbon(nb Bourbon) (bool, error) {
+	tx, err := DB.Begin()
+
+	if err != nil {
+		return false, err
+	}
+
+	qs := `INSERT INTO 
+			bourbons (name, price, size, abv, description) 
+			VALUES (?, ?, ?, ?, ?)`
+
+	stmt, err := tx.Prepare(qs)
+	if err != nil {
+		return false, err
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(nb.Name, nb.Price, nb.Size, nb.Abv, nb.Description)
+	if err != nil {
+		return false, err
+	}
+
+	tx.Commit()
+
+	return true, nil
+}

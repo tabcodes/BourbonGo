@@ -38,7 +38,7 @@ func checkErr(err error) {
 }
 
 func getBourbons(c *gin.Context) {
-	bourbons, err := models.GetBourbons(10)
+	bourbons, err := models.GetBourbons(20)
 	checkErr(err)
 
 	if bourbons == nil {
@@ -62,7 +62,21 @@ func getBourbonById(c *gin.Context) {
 }
 
 func addBourbon(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "addBourbon Called"})
+	var json models.Bourbon
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	success, err := models.CreateBourbon(json)
+
+	if success {
+		c.JSON(http.StatusCreated, gin.H{"status": "created"})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+	}
+
 }
 
 func updateBourbon(c *gin.Context) {
