@@ -2,20 +2,22 @@ package models
 
 import (
 	"database/sql"
+	"encoding/json"
 	"strconv"
 
+	sq "github.com/Masterminds/squirrel"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 var DB *sql.DB
 
 type Bourbon struct {
-	Id          int     `json:"id"`
-	Name        string  `json:"name"`
-	Size        string  `json:"size"`
-	Price       float64 `json:"price"`
-	Abv         float64 `json:"abv"`
-	Description string  `json:"description"`
+	Id          int     `json:"id,omitempty"`
+	Name        string  `json:"name,omitempty"`
+	Size        string  `json:"size,omitempty"`
+	Price       float64 `json:"price,omitempty"`
+	Abv         float64 `json:"abv,omitempty"`
+	Description string  `json:"description,omitempty"`
 }
 
 func ConnectDatabase() error {
@@ -118,4 +120,42 @@ func CreateBourbon(nb Bourbon) (bool, error) {
 	tx.Commit()
 
 	return true, nil
+}
+
+func UpdateBourbon(id int, ub Bourbon) (bool, error) {
+
+	_, dbErr := DB.Begin()
+
+	if dbErr != nil {
+		return false, dbErr
+	}
+
+	conv := BourbonToMap(ub)
+
+	qs := sq.Update("bourbons").Where(sq.Eq{"id": id})
+
+	query := qs.SetMap(conv)
+
+	result, err := query.RunWith(DB).Exec()
+	if err != nil {
+		return false, err
+	}
+
+	count, err := result.RowsAffected()
+
+	if count == 0 {
+		return false, err
+
+	}
+	return true, nil
+
+}
+
+func BourbonToMap(b Bourbon) map[string]interface{} {
+	var output = map[string]interface{}{}
+	data, _ := json.Marshal(b)
+	json.Unmarshal(data, &output)
+
+	return output
+
 }

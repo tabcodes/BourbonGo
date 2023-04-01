@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -80,7 +81,31 @@ func addBourbon(c *gin.Context) {
 }
 
 func updateBourbon(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "updateBourbon Called"})
+	var json models.Bourbon
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Invalid ID supplied"})
+	}
+
+	bourbon, err := models.GetBourbonById(strconv.Itoa(id))
+	checkErr(err)
+	if bourbon == (models.Bourbon{}) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
+
+	success, err := models.UpdateBourbon(id, json)
+	if success {
+		c.JSON(http.StatusOK, gin.H{"status": "updated"})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+	}
 }
 
 func deleteBourbon(c *gin.Context) {
