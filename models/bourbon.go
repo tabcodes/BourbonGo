@@ -151,6 +151,32 @@ func UpdateBourbon(id int, ub Bourbon) (bool, error) {
 
 }
 
+func DeleteBourbon(id int) (bool, error) {
+	tx, err := DB.Begin()
+	if err != nil {
+		return false, err
+	}
+
+	qs := `DELETE from bourbons WHERE id = ?`
+
+	stmt, err := DB.Prepare(qs)
+
+	if err != nil {
+		return false, err
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id)
+	if err != nil {
+		return false, err
+	}
+
+	tx.Commit()
+
+	return true, nil
+}
+
 func BourbonToMap(b Bourbon) map[string]interface{} {
 	var output = map[string]interface{}{}
 	data, _ := json.Marshal(b)

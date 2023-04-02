@@ -109,6 +109,19 @@ func updateBourbon(c *gin.Context) {
 }
 
 func deleteBourbon(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(http.StatusOK, gin.H{"message": "deleteBourbon " + id + " Called"})
+	id, err := strconv.Atoi(c.Param("id"))
+
+	bourbon, err := models.GetBourbonById(strconv.Itoa(id))
+	checkErr(err)
+	if bourbon == (models.Bourbon{}) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
+
+	success, err := models.DeleteBourbon(id)
+	if success {
+		c.JSON(http.StatusNoContent, gin.H{"status": "deleted"})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+	}
 }
